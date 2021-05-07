@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  InstanceType:
+    Description: Sample website with Instance ID
+    Type: String
+    Default: t2.micro
+  AMI:
+    Type: String
+    Default: ami-02f26adf094f51167
+    Description: Amazon Linux 2
+Resources:
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      SecurityGroupIds:
+        - Ref: InstanceSecurityGroup
+      ImageId: !Ref AMI
+      UserData: 
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            yum update -y
+            yum install -y httpd
+            systemctl start httpd
+            systemctl enable httpd
+            INSTANCEID="`wget -q -O - http://169.254.169.254/latest/meta-data/instance-id`"
+            echo "<h1>Instance ID $INSTANCEID</h1>" > /var/www/html/index.html
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow HTTP access from anywhere
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+Outputs:
+  InstanceId:
+    Description: Instance ID
+    Value: !Ref EC2Instance
+  PublicIP:
+    Description: Public IP address
+    Value: !GetAtt [EC2Instance, PublicIp]
