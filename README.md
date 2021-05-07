@@ -1,4 +1,4 @@
-# devops-exam
+# DevOps Engineer Exam
 
 # Requirements
 
